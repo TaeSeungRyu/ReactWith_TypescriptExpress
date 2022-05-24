@@ -2,14 +2,27 @@
 <html>
 
 <head>
-	<style>
-		#hey{width: 100%;height: 100%;position: absolute;z-index: 100;background: rgba(10,10,10,0.4);top: 0px;left: 0px;text-align:center;}
-		#hey_child{width: 100%;height: 50px;background: rgba(10,10,140,0.4); margin-top: 20%;border-radius: 5px;display: inline-block;font-size: 18px;line-height: 48px;color: #ddd;font-weight: bold;}
-	</style>				
+
 </head>
 
-<body >
+<body>
 	hello world
+	<h1>Hello Express</h1>
+	<button onClick="sayHi()">Say Hi</button>
 </body>
 
 </html>
+
+<script>
+	const ws = new WebSocket("ws://localhost:8001")
+
+	function sayHi() {
+		ws.send(`{hello:"asdfasdf"}`) // 서버에 데이터 전송
+	}
+
+	function receiveMessage(event) {
+		console.log(event.data)
+	}
+
+	ws.onmessage = receiveMessage	
+</script>

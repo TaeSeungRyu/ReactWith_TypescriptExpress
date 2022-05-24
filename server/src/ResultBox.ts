@@ -1,5 +1,5 @@
 import * as request from 'request';
-import {validateUrlString} from './Anno';
+import {stringToJson} from './Anno';
 
 
 //결과형태 타입 입니다.
@@ -23,7 +23,7 @@ class Util {
         return {statusCode, statusMessage, body, headers : {server, date}, host, remoteAddress}
     }
 
-    @validateUrlString
+    @stringToJson
     public validUrl(url : string) : string{
         if(url.split('.').length < 1) return '';
         return url;
