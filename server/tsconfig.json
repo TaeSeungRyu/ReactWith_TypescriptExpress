@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "outDir":"./dist",
+    "noEmitOnError": true,
+    "lib": ["ES2020"],
+    "module": "CommonJS",
+    "target": "ES2020",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+  }
+}
