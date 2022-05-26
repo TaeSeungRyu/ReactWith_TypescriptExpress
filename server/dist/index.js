@@ -25,11 +25,18 @@ app.all("/", (req, res) => {
 const db = new Map();
 app.all("/data/joinOrLogIn", (req, res) => {
     let { id, password, join } = req.body;
+    console.log(id, password, join);
     id = id.toString();
     if (join) {
         //회원가입
-        res.set(id, password.toString());
-        res.send({ result: "OK" });
+        if (!db.get(id)) {
+            db.set(id, password);
+            res.set(id, password.toString());
+            res.send({ result: "OK" });
+        }
+        else {
+            res.send({ result: "ID IS EXSIST" });
+        }
     }
     else {
         //로그인

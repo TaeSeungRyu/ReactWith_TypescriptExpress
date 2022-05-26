@@ -1,8 +1,8 @@
-import { combineReducers } from "redux";
-import HistoryData from './st'
+import { combineReducers } from 'redux';
+import INSERT_SESSION from './Session';
 
-const  RootReducer = combineReducers({
-    HistoryData
-})
+const root = combineReducers({
+  INSERT_SESSION
+});
 
-export default RootReducer
+export default root
