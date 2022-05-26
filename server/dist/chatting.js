@@ -9,14 +9,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.room = void 0;
+exports.room = exports.init = void 0;
 const ws_1 = require("ws");
 const Anno_1 = require("./Anno");
 // 웹소켓 서버 생성
 const wss = new ws_1.WebSocketServer({ port: 8001 });
 //소캣객체를 보관 합니다.
-const map = new Map();
-const room = new Map();
+const sokets = new Map();
+//방 입니다.
+let room = null;
 exports.room = room;
 class RequestWorker {
     RequestWorker() { }
@@ -28,11 +29,12 @@ class RequestWorker {
         return RequestWorker.singleTon;
     }
     todoRequest(data) {
+        console.log("room::: ", room);
         //data가 방만들기인지, 챗 메시지인지 구분할 필요가 있습니다.
         if (data.create) {
             //방만들기면 캐스팅!
-            let createRoom = data.create;
-            let rommId = this.getUniqueID();
+            let createRoom = data;
+            let rommId = RequestWorker.singleTon.getUniqueID();
             let array = new Array();
             array.push(createRoom._id); //방 만든사람 아이디 넣기
             room.set(rommId, {
@@ -41,35 +43,43 @@ class RequestWorker {
                 _room_id: rommId,
                 list: array,
             });
+            console.log(createRoom);
+            sokets.get(createRoom._id).roomId = rommId;
         }
         else if (data.join) {
             //방들어오기 기능이라면
-            let joinRoom = data.join;
+            let joinRoom = data;
             if (room.get(joinRoom._room_id).password == joinRoom.password) {
                 room.get(joinRoom._room_id).list.push(joinRoom._id);
-                map.get(joinRoom._id).ws.send(`{result:succ}`);
+                sokets.get(joinRoom._id).roomId = joinRoom._room_id;
+                sokets.get(joinRoom._id).ws.send(`{result:succ}`);
             }
             else {
-                map.get(joinRoom._id).ws.send(`{result:fail}`);
+                sokets.get(joinRoom._id).ws.send(`{result:fail}`);
             }
         }
         else if (data.send) {
             //단순 메시지 전송이라면
-            let msg = data.send;
-            map.forEach((value, key) => {
-                if (key == msg._id) {
-                    //같은 방 식구한테만 메시지를 전송 합니다.
+            let msg = data;
+            sokets.forEach((value, key) => {
+                //같은 방 식구한테만 메시지를 전송 합니다.
+                if (value.roomId === msg.roomId) {
                     value.ws.send(msg);
                 }
             });
         }
+        else {
+            sokets.forEach((value, key) => {
+                value.ws.send(`this is test : ${JSON.stringify(data)}`);
+            });
+        }
     }
     getUniqueID() {
-        function s4() {
+        let s4 = () => {
             return Math.floor((1 + Math.random()) * 0x10000)
                 .toString(16)
                 .substring(1);
-        }
+        };
         return `${s4()}-${s4()}-${s4()}`;
     }
 }
@@ -83,11 +93,12 @@ __decorate([
 const worker = RequestWorker.getInstance();
 wss.on("connection", (ws) => {
     const id = worker.getUniqueID();
-    map.set(id, { ws });
+    ws.send(`{"id":"${id}"}`); //최초들어오면 아이디를 발급해줍니다.
+    sokets.set(id, { ws, roomId: null });
     // 데이터 수신 이벤트 바인드
     ws.on("message", worker.todoRequest);
     ws.on("close", () => {
-        map.delete(id);
+        sokets.delete(id);
         room.forEach((value, key) => {
             //브라우저 끄고 나가면
             if (value.list.length > 0) {
@@ -97,6 +108,11 @@ wss.on("connection", (ws) => {
         });
     });
 });
+function init(arg) {
+    exports.room = room = arg;
+    return room;
+}
+exports.init = init;
 //방 나가기, 브라우저 끄기 이벤트//방 나가기, 브라우저 끄기 이벤트
 //방 나가기, 브라우저 끄기 이벤트//방 나가기, 브라우저 끄기 이벤트
 /*

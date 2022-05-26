@@ -6,7 +6,9 @@ const bodyParser = require("body-parser");
 //#1. 서버 기본 설정 입니다.
 //익스프레스 객체 입니다.
 const app = express();
-console.log(chatting_1.room);
+{
+    (0, chatting_1.init)(new Map());
+}
 //뷰 설정 입니다.
 app.set("views", "D:/reactWithApp/server/html");
 app.engine("html", require("ejs").renderFile);
@@ -25,7 +27,6 @@ app.all("/", (req, res) => {
 const db = new Map();
 app.all("/data/joinOrLogIn", (req, res) => {
     let { id, password, join } = req.body;
-    console.log(id, password, join);
     id = id.toString();
     if (join) {
         //회원가입
@@ -50,6 +51,15 @@ app.all("/data/joinOrLogIn", (req, res) => {
             res.send({ result: "OK" });
         }
     }
+});
+//#2. end ----------------
+//#3. 채팅방 목록을 받습니다. ----------------
+//데이터 베이스용 map 객체 입니다.
+app.all("/data/getRoomList", (req, res) => {
+    console.log("---------------");
+    console.log(chatting_1.room);
+    console.log("---------------");
+    res.send({ result: JSON.stringify(chatting_1.room) });
 });
 //#2. end ----------------
 app.listen(4885, () => {

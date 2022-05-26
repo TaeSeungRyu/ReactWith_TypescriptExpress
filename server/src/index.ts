@@ -1,11 +1,14 @@
 import * as express from "express";
-import { room } from "./chatting";
+import { init, room, roomT } from "./chatting";
 import * as bodyParser from "body-parser";
 
 //#1. 서버 기본 설정 입니다.
 //익스프레스 객체 입니다.
 const app: express.Application = express();
-console.log(room);
+{
+  init(new Map<string, roomT>());
+}
+
 //뷰 설정 입니다.
 app.set("views", "D:/reactWithApp/server/html");
 app.engine("html", require("ejs").renderFile);
@@ -30,10 +33,7 @@ app.all("/", (req: express.Request, res: express.Response) => {
 const db = new Map<string, string>();
 app.all("/data/joinOrLogIn", (req: express.Request, res: express.Response) => {
   let { id, password, join } = req.body;
-
-  console.log(id, password, join);
   id = id.toString();
-
   if (join) {
     //회원가입
     if (!db.get(id)) {
@@ -56,6 +56,15 @@ app.all("/data/joinOrLogIn", (req: express.Request, res: express.Response) => {
 });
 //#2. end ----------------
 
+//#3. 채팅방 목록을 받습니다. ----------------
+//데이터 베이스용 map 객체 입니다.
+app.all("/data/getRoomList", (req: express.Request, res: express.Response) => {
+  console.log("---------------");
+  console.log(room);
+  console.log("---------------");
+  res.send({ result: JSON.stringify(room) });
+});
+//#2. end ----------------
 app.listen(4885, () => {
   console.log("실행중");
 });

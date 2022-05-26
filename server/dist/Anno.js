@@ -5,8 +5,8 @@ exports.stringToJson = void 0;
 function stringToJson(target, key, desc) {
     const originCode = desc.value;
     desc.value = function (...args) {
-        if (args && args[0] && typeof args[0] == 'string') {
-            let data = JSON.parse(args[0]);
+        if (args && args[0]) {
+            let data = JSON.parse(args[0].toString());
             args[0] = data;
         }
         return originCode.apply(this, args);
