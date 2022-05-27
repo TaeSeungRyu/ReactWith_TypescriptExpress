@@ -13,12 +13,14 @@
 	<button onClick="inRoom()">방들어가기</button>
 
 	<button onClick="sendMsg()">메시지보내기</button>
+
+	<button onClick="showRoom()">방 상태 보기</button>
 </body>
 
 </html>
 
 <script>
-	const ws = new WebSocket("ws://localhost:8001/wsocket")
+	const ws = new WebSocket("ws://localhost:8001/wsocket?id=admin")
 
 	let id = '';  //웹소켓에서 사용될 아이디 값
 	sessionStorage.setItem('id','admin')
@@ -31,7 +33,18 @@
 			password : '1234',
 			create : 'create'
 		}
-		ws.send(JSON.stringify(create))  
+
+		$.ajax({
+			url: '/data/createRoom',	
+			data: create,
+			type: 'post',
+			success: function (res) {
+				console.log(res)			
+			},
+			error : function(err){
+				console.log(err)
+			}			
+		})		
 	}
 
 	//방 들어가기
@@ -43,13 +56,18 @@
 			data: {},
 			type: 'post',
 			success: function (res) {
-				console.log(res)
-				// let join = {  //전송 규격
-				// 	_room_id : '',
-				// 	password : '1234',
-				// 	join : 'join'
-				// }		
-				// ws.send(JSON.stringify(join))  				
+				let rooms = JSON.parse(res)
+				
+				roomId = rooms[0]._room_id
+				roomPwd = rooms[0].password
+
+				let join = {  //전송 규격
+					_room_id : rooms[0]._room_id,
+					password : rooms[0].password,
+					_id : id,
+					join : 'join'
+				}		
+				ws.send(JSON.stringify(join))  				
 			},
 			error : function(err){
 				console.log(err)
@@ -60,13 +78,39 @@
 	
 	//메지시 전송하기
 	function sendMsg() {
-		ws.send(`{"hello":"asdfasdf"}`) 
+		let msg = {  //전송 규격
+			_room_id : roomId,
+			_id : id,
+			send : 'send',
+			message:'hello room mate!'
+		}		
+		ws.send(JSON.stringify(msg)) 
 	}	
 
 	function receiveMessage(event) {
 		let object = JSON.parse(event.data);
 		if(object.id){id = object.id}
+		console.log(object)
 	}
+
+
+
+	function showRoom() {
+		$.ajax({
+			url: '/data/getRoomList',	
+			data: {},
+			type: 'post',
+			success: function (res) {
+				console.log(res)
+				let rooms = JSON.parse(res)
+				console.log(rooms)			
+			},
+			error : function(err){
+				console.log(err)
+			}			
+		})
+
+	}	
 
 	ws.onmessage = receiveMessage	
 </script>
