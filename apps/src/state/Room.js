@@ -13,12 +13,7 @@ const DATA_STATUS = []
 //#4. 리듀서
 const INSERT_ROOMS = handleActions({
     [INSERT] : (state, action)=>{
-        
-        state.concat(action.payload.item)
-        
-        return {
-            state 
-        }
+        return state.filter(arg=> false).concat(action.payload.item)
     }        
 }, DATA_STATUS)
 

@@ -36,7 +36,11 @@ class RequestWorker {
             if (room.get(joinRoom._room_id).password == joinRoom.password) {
                 room.get(joinRoom._room_id).list.push(joinRoom._id);
                 sokets.get(joinRoom._id)._room_id = joinRoom._room_id;
-                sokets.get(joinRoom._id).ws.send(`{"result":"join_succ"}`);
+                room.get(joinRoom._room_id).list.forEach((user) => {
+                    sokets
+                        .get(user)
+                        .ws.send(`{"result":"someIn","user":"${joinRoom._id}"}`);
+                });
             }
             else {
                 sokets.get(joinRoom._id).ws.send(`{"result":"fail"}`);
@@ -55,6 +59,7 @@ class RequestWorker {
         }
         else {
             sokets.forEach((value, key) => {
+                console.log(`"test": "${JSON.stringify(data)}"`);
                 value.ws.send(`"test": "${JSON.stringify(data)}"`);
             });
         }
@@ -71,10 +76,9 @@ class RequestWorker {
         if (arg.indexOf("?") >= 0) {
             let data = arg.split(/[?]+/);
             let target = data[1];
-            target = target.substring(target.indexOf("="), target.length);
+            target = target.substring(target.indexOf("=") + 1, target.length);
             return target;
         }
-        console.log("wtf");
         return arg;
     }
 }
@@ -87,10 +91,9 @@ __decorate([
 //웹소캣 행동을 정의하는 클래스 입니다.
 const worker = RequestWorker.getInstance();
 wss.on("connection", (ws, req) => {
-    const id = worker.getUniqueID();
-    ws.send(`{"id":"${id}"}`); //최초들어오면 아이디를 발급해줍니다.
-    console.log("req url : ", req.url, worker.getParamFromUrl(req.url));
+    const id = worker.getParamFromUrl(req.url);
     sokets.set(id, { ws, _room_id: null });
+    ws.send(`{"id":"${id}","youIn":"true"}`); //최초들어오면 아이디를 저장합니다.
     // 데이터 수신 이벤트 바인드
     ws.on("message", worker.todoRequest);
     ws.on("close", () => {
@@ -99,6 +102,12 @@ wss.on("connection", (ws, req) => {
             //브라우저 끄고 나가면
             if (value.list.length > 0) {
                 value.list = value.list.filter((k) => k != id);
+                if (value.list.length > 0) {
+                    value.list.forEach((user) => {
+                        //남은 인원에게 나감을 알림
+                        sokets.get(user).ws.send(`{"result":"someOut","user":"${id}"}`);
+                    });
+                }
                 room.set(key, value);
             }
         });
